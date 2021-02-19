@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">UbiFormAndroidStreamingExample</string>
+    <string name="button_text">Choose File</string>
 </resources>
