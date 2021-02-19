@@ -4,33 +4,60 @@
 #include <fstream>
 
 
+void writeToText(const std::string &textToWrite, JNIEnv *env,
+                 jobject textObject) {
+    jclass TextViewClass = env->FindClass(
+            "com/example/ubiformandroidstreamingexample/MainActivity");
+    jmethodID setText = env->GetMethodID(TextViewClass, "updateMainOutput",
+                                         "(Ljava/lang/String;)V");
+    jstring msg = env->NewStringUTF(textToWrite.c_str());
+    env->CallVoidMethod(textObject, setText, msg);
+}
+
 
 struct PairStreamInfo{
-    Component* component;
-    std::ifstream * file;
+    std::string currentFile;
+    jobject activity_object;
+    JNIEnv* env;
 };
 Component * component;
 PairStreamInfo* pairStreamInfo;
 
+void onStreamEnd(PairEndpoint *pEndpoint, void *pVoid){
+    auto* file = static_cast<std::ifstream*>(pVoid);
+    if(file->is_open()){
+        file->close();
+    }
+    delete file;
+}
 void onPairStreamCreation(Endpoint * e, void* userData){
     // We use the global rather than the local data provided
     PairEndpoint* senderEndpoint = component->castToPair(e);
-    SocketMessage sm;
-    sm.addMember("extraInfo","HELLO");
-    senderEndpoint->sendStream(*(pairStreamInfo->file), 10002, false, sm,nullptr, nullptr);
+    auto* file = new std::ifstream ;
+    file->open(pairStreamInfo->currentFile);
+    if (file->is_open()) {
+        SocketMessage sm;
+        sm.addMember("extraInfo","HELLO");
+        try {
+            senderEndpoint->sendStream(*file, 10002, false, sm, onStreamEnd, file);
+        } catch (std::logic_error &e){
+            writeToText(e.what(),pairStreamInfo->env,pairStreamInfo->activity_object);
+        }
+    }
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_ubiformandroidstreamingexample_MainActivity_startComponent(JNIEnv *env,
-                                                                            jobject thiz,
-                                                                            jstring ip_address) {
+Java_com_example_ubiformandroidstreamingexample_MainActivity_startComponent(JNIEnv *env, jobject thiz, jstring ip_address,
+                                                                            jobject activity_object) {
     try {
         if (component == nullptr) {
             jboolean isCopy = false;
             std::string componentUrl = env->GetStringUTFChars(ip_address, &isCopy);
             component = new Component(componentUrl);
-
+            pairStreamInfo = new PairStreamInfo;
+            pairStreamInfo->activity_object = activity_object;
+            pairStreamInfo->env = env;
 
             std::shared_ptr<EndpointSchema> send = std::make_shared<EndpointSchema>();
             send->addProperty("extraInfo",ValueType::String);
@@ -38,16 +65,16 @@ Java_com_example_ubiformandroidstreamingexample_MainActivity_startComponent(JNIE
             std::shared_ptr<EndpointSchema> empty = std::make_shared<EndpointSchema>();
             component->getComponentManifest().addEndpoint(SocketType::Pair,"sender",empty,send);
 
-            pairStreamInfo = new PairStreamInfo;
-            pairStreamInfo->component = component;
-            pairStreamInfo->file = new std::ifstream;
+
             component->registerStartupFunction("sender",onPairStreamCreation, nullptr);
         }
         if (component->getBackgroundPort() == -1) {
             component->startBackgroundListen();
         }
+        writeToText("Started at: " + component->getSelfAddress(), env, activity_object);
     } catch (std::logic_error &e) {
         std::string returnString = "Error with component startup: " + std::string(e.what());
+        writeToText(returnString, env, activity_object);
     }
 }
 
@@ -56,14 +83,8 @@ JNIEXPORT jstring JNICALL
 Java_com_example_ubiformandroidstreamingexample_MainActivity_openFile(JNIEnv *env, jobject thiz,
                                                                       jstring file_loc) {
     jboolean isCopy = false;
-    std::string fileLoc = env->GetStringUTFChars(file_loc, &isCopy);
-    pairStreamInfo->file->open(fileLoc);
-    if (pairStreamInfo->file->is_open()) {
-        return env->NewStringUTF("Success");
-    }else{
-        std::string ret = "Error " + fileLoc;
-        return env->NewStringUTF(ret.c_str());
-    }
+    pairStreamInfo->currentFile = env->GetStringUTFChars(file_loc, &isCopy);
+    return env->NewStringUTF("Success");
 }
 
 extern "C"
@@ -75,10 +96,7 @@ Java_com_example_ubiformandroidstreamingexample_MainActivity_deleteComponent(JNI
         component = nullptr;
     }
     if (pairStreamInfo != nullptr){
-        if (pairStreamInfo->file != nullptr){
-            pairStreamInfo->file->close();
-            delete pairStreamInfo->file;
-        }
         delete pairStreamInfo;
+        pairStreamInfo = nullptr;
     }
 }

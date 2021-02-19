@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
         val ipAddress =
             "tcp://${(numAddress and 0xff)}.${(numAddress shr 8 and 0xff)}.${(numAddress shr 16 and 0xff)}.${(numAddress shr 24 and 0xff)}"
 
-        val componentMsg = startComponent(ipAddress)
+        val componentMsg = startComponent(ipAddress, this)
         Log.d("UbiForm", ipAddress)
     }
 
@@ -63,13 +63,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun updateMainOutput(text: String) {
+        val out = findViewById<TextView>(R.id.file_path_text)
+        out.post { out.text = text }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         deleteComponent()
     }
 
     external fun deleteComponent()
-    external fun startComponent(ipAddress: String)
+    external fun startComponent(ipAddress: String, activityObject: MainActivity)
     external fun openFile(fileLoc: String) : String
 
     companion object {
