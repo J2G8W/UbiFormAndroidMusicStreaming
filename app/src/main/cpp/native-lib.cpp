@@ -100,3 +100,18 @@ Java_com_example_ubiformandroidstreamingexample_MainActivity_deleteComponent(JNI
         pairStreamInfo = nullptr;
     }
 }
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_ubiformandroidstreamingexample_MainActivity_addRDH(JNIEnv *env, jobject thiz,
+                                                                    jstring url,
+                                                                    jobject activity_object) {
+    try {
+        jboolean isCopy = false;
+        std::string rdhUrl = env->GetStringUTFChars(url, &isCopy);
+        component->getResourceDiscoveryConnectionEndpoint().registerWithHub(rdhUrl);
+        writeToText("Success adding Resource Discovery Hub", env, activity_object);
+    } catch (std::logic_error &e) {
+        writeToText(e.what(), env, activity_object);
+    }
+}

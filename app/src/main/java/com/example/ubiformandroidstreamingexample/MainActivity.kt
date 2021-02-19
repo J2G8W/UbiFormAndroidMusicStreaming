@@ -9,6 +9,7 @@ import android.os.Parcel
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import android.view.View
+import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import java.io.BufferedReader
@@ -37,6 +38,16 @@ class MainActivity : AppCompatActivity() {
         chooseFile.type = "*/*"
         chooseFile = Intent.createChooser(chooseFile, "Choose a file")
         startActivityForResult(chooseFile, PICKFILE_RESULT_CODE)
+    }
+
+    fun rdhButtonClick(view :View){
+        updateMainOutput("Joining rdh")
+        val textInput = findViewById<EditText>(R.id.rdh_url)
+        val textVal = textInput.text.toString()
+        Thread {
+            addRDH(textVal, this)
+        }.start()
+        textInput.text.clear()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -73,6 +84,7 @@ class MainActivity : AppCompatActivity() {
         deleteComponent()
     }
 
+    external fun addRDH(url: String, activityObject: MainActivity)
     external fun deleteComponent()
     external fun startComponent(ipAddress: String, activityObject: MainActivity)
     external fun openFile(fileLoc: String) : String

@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">UbiFormAndroidStreamingExample</string>
     <string name="button_text">Choose File</string>
+    <string name="input_hint">RDH address</string>
+    <string name="rdh_button_text">Add RDH</string>
 </resources>
