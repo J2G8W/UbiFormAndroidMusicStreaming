@@ -47,12 +47,17 @@ class MainActivity : AppCompatActivity() {
                 if (resultCode == -1) {
                     fileUri = data?.data
 
-                    // TODO - Make this cleaner for null inputs etc
-                    mParcelFileDescriptor =
-                        contentResolver.openFileDescriptor(fileUri!!, "r")
 
-                    val fd: Int? = mParcelFileDescriptor?.getFd()
-                    text.text = openFile("/proc/self/fd/$fd")
+                    mParcelFileDescriptor = fileUri?.let {
+                        contentResolver.openFileDescriptor(it, "r")
+                    }
+
+                    val fd: Int? = mParcelFileDescriptor?.fd
+                    if(fd != null){
+                        text.text = openFile("/proc/self/fd/$fd")
+                    }else{
+                        text.text = "Unable to open the file descriptor"
+                    }
                 }
             }
         }
