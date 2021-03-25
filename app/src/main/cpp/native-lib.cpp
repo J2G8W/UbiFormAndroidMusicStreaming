@@ -36,10 +36,10 @@ void onPairStreamCreation(Endpoint * e, void* userData){
     auto* file = new std::ifstream ;
     file->open(pairStreamInfo->currentFile);
     if (file->is_open()) {
-        SocketMessage sm;
-        sm.addMember("extraInfo","HELLO");
+        EndpointMessage endpointMessage;
+        endpointMessage.addMember("extraInfo", "HELLO");
         try {
-            senderEndpoint->sendStream(*file, 10002, false, sm, onStreamEnd, file);
+            senderEndpoint->sendStream(*file, 10002, false, endpointMessage, onStreamEnd, file);
         } catch (std::logic_error &e){
             writeToText(e.what(),pairStreamInfo->env,pairStreamInfo->activity_object);
         }
@@ -63,7 +63,7 @@ Java_com_example_ubiformandroidstreamingexample_MainActivity_startComponent(JNIE
             send->addProperty("extraInfo",ValueType::String);
             send->addRequired("extraInfo");
             std::shared_ptr<EndpointSchema> empty = std::make_shared<EndpointSchema>();
-            component->getComponentManifest().addEndpoint(SocketType::Pair,"sender",empty,send);
+            component->getComponentManifest().addEndpoint(ConnectionParadigm::Pair,"sender",empty,send);
 
 
             component->registerStartupFunction("sender",onPairStreamCreation, nullptr);
