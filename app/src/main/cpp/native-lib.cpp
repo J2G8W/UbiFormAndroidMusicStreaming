@@ -22,12 +22,14 @@ struct PairStreamInfo{
 };
 Component * component;
 PairStreamInfo* pairStreamInfo;
+int* componentNum = new int(0);
 
 void onStreamEnd(PairEndpoint *pEndpoint, void *pVoid){
     auto* file = static_cast<std::ifstream*>(pVoid);
     if(file->is_open()){
         file->close();
     }
+    (*componentNum) --;
     delete file;
 }
 void onPairStreamCreation(Endpoint * e, void* userData){
@@ -35,9 +37,13 @@ void onPairStreamCreation(Endpoint * e, void* userData){
     PairEndpoint* senderEndpoint = component->castToPair(e);
     auto* file = new std::ifstream ;
     file->open(pairStreamInfo->currentFile);
+
+    (*componentNum) ++;
+
     if (file->is_open()) {
         EndpointMessage endpointMessage;
         endpointMessage.addMember("extraInfo", "HELLO");
+        endpointMessage.addMember("endpointNum",*componentNum);
         try {
             senderEndpoint->sendStream(*file, 10002, false, endpointMessage, onStreamEnd, file);
         } catch (std::logic_error &e){
@@ -62,6 +68,7 @@ Java_com_example_ubiformandroidstreamingexample_MainActivity_startComponent(JNIE
             std::shared_ptr<EndpointSchema> send = std::make_shared<EndpointSchema>();
             send->addProperty("extraInfo",ValueType::String);
             send->addRequired("extraInfo");
+            send->addProperty("endpointNum",ValueType::Number);
             std::shared_ptr<EndpointSchema> empty = std::make_shared<EndpointSchema>();
             component->getComponentManifest().addEndpoint(ConnectionParadigm::Pair,"sender",empty,send);
 
