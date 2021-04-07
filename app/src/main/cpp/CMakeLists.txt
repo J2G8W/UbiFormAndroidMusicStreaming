@@ -41,8 +41,7 @@ find_library( # Sets the name of the path variable.
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
-ADD_DEFINITIONS(-DRAPIDJSON_HAS_STDSTRING)
-include_directories(../../../libs/UbiForm/include ../../../libs/UbiForm/libs/rapidjson/include ../../../libs/UbiForm/CMake/nng-master/include)
+include_directories(../../../libs/UbiForm/include)
 add_subdirectory(../../../libs/UbiForm/CMake build)
 
 # Specifies libraries CMake should link to your target library. You
