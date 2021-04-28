@@ -14,8 +14,10 @@ Android:
 Use Android Studio with CMake to build the project. 
 
 ## Usage example
+Video hosted on YouTube - clicking the image will take you to YouTube
 
-[Usage example](https://user-images.githubusercontent.com/44195342/113887395-5c681100-97b9-11eb-9178-283adf1e6ac7.mp4)
+
+[![Usage Example](https://img.youtube.com/vi/NfAVJJek9_M/0.jpg)](https://youtu.be/NfAVJJek9_M)
 
 
 
